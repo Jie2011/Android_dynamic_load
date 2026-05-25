@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>首页 v2 · 智策投教</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   智策投教 · 首页 v2
+   - 顶部栏改版：搜索 + 消息
+   - 压缩快捷功能区
+   - 直播广场 2.5 卡 + 三种状态分支
+   - 讲师矩阵下划线 tab + 卡片改版
+   - 直播预告 16:9 横向列表
+   ============================================================ */
+
+:root {
+  --color-primary: #0B2545;
+  --color-primary-deep: #061833;
+  --color-primary-mid: #13315C;
+  --color-primary-light: #1E4D8B;
+  --color-bg-blue: #F4F7FB;
+  --color-gold: #C9A55C;
+  --color-gold-light: #E5C98A;
+  --color-gold-deep: #9A7C3E;
+  --color-live: #E63946;
+  --color-success: #1F8A70;
+  --color-text-primary: #0B1A2C;
+  --color-text-secondary: #5A6B82;
+  --color-text-muted: #8C96A6;
+  --color-text-light: #B3BCCB;
+  --color-divider: #ECEFF4;
+  --color-page-bg: #F7F8FA;
+  --font-serif: 'Noto Serif SC', 'Songti SC', serif;
+  --font-sans: 'Noto Sans SC', -apple-system, 'PingFang SC', sans-serif;
+  --font-display: 'DM Serif Display', 'Noto Serif SC', serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(11, 37, 69, 0.04);
+  --shadow-md: 0 4px 12px rgba(11, 37, 69, 0.06);
+  --shadow-lg: 0 8px 24px rgba(11, 37, 69, 0.08);
+  --shadow-gold: 0 4px 16px rgba(201, 165, 92, 0.25);
+  --status-bar-h: 44px;
+  --topbar-h: 44px;
+  --tabbar-h: 50px;
+  --safe-bottom: 24px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background: var(--color-page-bg);
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.device {
+  width: 100vw;
+  height: 100vh;
+  background: var(--color-page-bg);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+body.demo-mode {
+  background: #1a1f2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+body.demo-mode .device {
+  width: 375px;
+  height: 812px;
+  border-radius: 36px;
+  border: 10px solid #1a1a1a;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.mode-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+  background: rgba(11, 37, 69, 0.8);
+  color: #fff;
+  border: none;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  font-family: var(--font-sans);
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+.mode-toggle:hover { opacity: 1; }
+body.demo-mode .mode-toggle { background: rgba(255,255,255,0.15); }
+
+/* ============== 顶部沉浸式背景 ============== */
+.home-header-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 200px;
+  background:
+    radial-gradient(ellipse at top right, rgba(201, 165, 92, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at top left, rgba(30, 77, 139, 0.35) 0%, transparent 60%),
+    linear-gradient(180deg, var(--color-primary-deep) 0%, var(--color-primary) 60%, var(--color-page-bg) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+.home-header-bg::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ============== 状态栏 ============== */
+.status-bar {
+  height: var(--status-bar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+}
+.status-bar .right { display: flex; gap: 6px; align-items: center; }
+.status-bar .right svg { width: 16px; height: 12px; }
+
+/* ============== 顶部栏（搜索 + 消息） ============== */
+.topbar {
+  height: var(--topbar-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  position: relative;
+  z-index: 10;
+}
+.topbar-search {
+  flex: 1;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+.topbar-search svg {
+  width: 13px; height: 13px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.topbar-search .placeholder {
+  flex: 1;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.topbar-search .placeholder .hot {
+  color: var(--color-gold-deep);
+  font-weight: 500;
+}
+.topbar-msg {
+  width: 32px; height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.topbar-msg svg { width: 22px; height: 22px; }
+.topbar-msg .num {
+  position: absolute;
+  top: -2px; right: -2px;
+  min-width: 16px; height: 14px;
+  padding: 0 4px;
+  background: var(--color-live);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--color-primary-deep);
+  line-height: 1;
+}
+
+/* ============== 滚动区 ============== */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom));
+  position: relative;
+  z-index: 1;
+}
+.scroll-area::-webkit-scrollbar { width: 0; }
+
+/* ============== 活动 Banner ============== */
+.banner-area { padding: 10px 16px 0; }
+.banner {
+  height: 110px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(120deg, #1A3D7C 0%, #13315C 50%, #0B2545 100%);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(11, 37, 69, 0.25);
+  padding: 14px 18px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.banner::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(201, 165, 92, 0.35) 0%, transparent 65%);
+  border-radius: 50%;
+}
+.banner::after {
+  content: '';
+  position: absolute;
+  right: 14px; top: 14px; bottom: 14px;
+  width: 90px;
+  background:
+    linear-gradient(135deg, transparent 40%, rgba(201, 165, 92, 0.2) 40%, rgba(201, 165, 92, 0.2) 42%, transparent 42%),
+    linear-gradient(135deg, transparent 55%, rgba(201, 165, 92, 0.3) 55%, rgba(201, 165, 92, 0.3) 56%, transparent 56%);
+}
+.banner-tag {
+  align-self: flex-start;
+  background: rgba(201, 165, 92, 0.2);
+  color: var(--color-gold-light);
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+  font-weight: 500;
+  border: 1px solid rgba(201, 165, 92, 0.4);
+  position: relative; z-index: 2;
+}
+.banner-title {
+  font-family: var(--font-serif);
+  font-size: 17px; font-weight: 600;
+  letter-spacing: 1px; line-height: 1.3;
+  position: relative; z-index: 2;
+}
+.banner-title .gold { color: var(--color-gold-light); }
+.banner-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10.5px;
+  position: relative; z-index: 2;
+}
+.banner-meta .left { opacity: 0.8; letter-spacing: 0.3px; }
+.banner-meta .countdown {
+  display: flex; align-items: center; gap: 3px;
+  font-family: var(--font-display);
+}
+.banner-meta .countdown-box {
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--color-gold-light);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+  min-width: 20px;
+  text-align: center;
+  font-weight: 600;
+}
+.banner-dots {
+  display: flex; justify-content: center; gap: 4px;
+  margin-top: 8px;
+}
+.banner-dots .dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--color-text-light);
+  transition: width 0.3s;
+}
+.banner-dots .dot.active {
+  width: 14px;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+}
+
+/* ============== 快捷功能区（压缩版） ============== */
+.quick-nav {
+  margin: 12px 16px 0;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 12px 6px 10px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  row-gap: 8px;
+  box-shadow: var(--shadow-sm);
+}
+.quick-item {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+  cursor: pointer;
+}
+.quick-item .icon {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, rgba(30, 77, 139, 0.08), rgba(30, 77, 139, 0.02));
+  color: var(--color-primary);
+  position: relative;
+}
+.quick-item .icon svg { width: 17px; height: 17px; }
+.quick-item.gold .icon {
+  background: linear-gradient(135deg, rgba(201, 165, 92, 0.15), rgba(201, 165, 92, 0.04));
+  color: var(--color-gold-deep);
+}
+.quick-item .label {
+  font-size: 10.5px;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+.quick-item .badge {
+  position: absolute;
+  top: -3px; right: -3px;
+  background: var(--color-live);
+  color: #fff;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 6px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* ============== 通用：板块标题 ============== */
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 18px 16px 10px;
+}
+.section-title {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.section-title .en {
+  font-family: var(--font-display);
+  font-size: 10px;
+  color: var(--color-gold);
+  letter-spacing: 2px;
+  font-weight: 400;
+}
+.section-title .accent {
+  width: 3px;
+  height: 13px;
+  background: linear-gradient(180deg, var(--color-gold) 0%, var(--color-gold-deep) 100%);
+  border-radius: 2px;
+  align-self: center;
+}
+.section-more {
+  font-size: 11.5px;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.section-more::after {
+  content: '›';
+  font-size: 16px;
+  line-height: 1;
+  margin-left: 2px;
+}
+
+/* ============== 直播广场 ============== */
+.live-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 16px 10px;
+}
+.live-section-title {
+  display: flex; align-items: center; gap: 6px;
+}
+.live-section-title .icon {
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  background: var(--color-live);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700;
+}
+.live-section-title .text {
+  font-family: var(--font-serif);
+  font-size: 16px; font-weight: 600;
+  color: var(--color-text-primary);
+}
+.live-section-title .count {
+  color: var(--color-live);
+  font-size: 11.5px; font-weight: 500;
+  margin-left: 4px;
+  font-family: var(--font-display);
+}
+.live-scroll {
+  display: flex; gap: 10px;
+  overflow-x: auto;
+  padding: 0 16px 4px;
+}
+.live-scroll::-webkit-scrollbar { height: 0; }
+
+/* 单卡 ≈ 138px，375 宽下露出 2 张半卡片 */
+.live-card {
+  flex-shrink: 0;
+  width: 138px;
+  background: #fff;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.live-card:active { transform: scale(0.98); }
+.live-card-cover {
+  height: 82px;
+  position: relative;
+  background: linear-gradient(135deg, var(--color-primary-mid) 0%, var(--color-primary-deep) 100%);
+  overflow: hidden;
+}
+.live-card-cover.theme-1 {
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(201, 165, 92, 0.4) 0%, transparent 50%),
+    linear-gradient(135deg, #13315C 0%, #061833 100%);
+}
+.live-card-cover.theme-2 {
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(230, 57, 70, 0.3) 0%, transparent 50%),
+    linear-gradient(135deg, #1E4D8B 0%, #0B2545 100%);
+}
+.live-card-cover.theme-3 {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(31, 138, 112, 0.3) 0%, transparent 60%),
+    linear-gradient(135deg, #13315C 0%, #1E4D8B 100%);
+}
+.live-card-cover.theme-4 {
+  background:
+    radial-gradient(ellipse at 70% 30%, rgba(154, 124, 62, 0.3) 0%, transparent 60%),
+    linear-gradient(135deg, #0B2545 0%, #061833 100%);
+  filter: grayscale(0.3);
+}
+.live-card-cover svg.deco {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0.35;
+}
+.live-card-cover.ended::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(6, 24, 51, 0.45);
+}
+.live-card-cover.ended svg.deco { opacity: 0.18; }
+
+.live-flag {
+  position: absolute;
+  top: 6px; left: 6px;
+  font-size: 9.5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  display: flex; align-items: center; gap: 4px;
+  z-index: 2;
+}
+.live-flag.live {
+  background: var(--color-live);
+  color: #fff;
+}
+.live-flag.live .dot {
+  width: 4px; height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.live-flag.reserve {
+  background: rgba(0,0,0,0.55);
+  color: var(--color-gold-light);
+  font-weight: 500;
+}
+.live-flag.ended {
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-weight: 500;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.live-card-cover .viewers {
+  position: absolute;
+  bottom: 6px; right: 6px;
+  color: #fff;
+  font-size: 10px;
+  background: rgba(0,0,0,0.45);
+  padding: 1px 6px;
+  border-radius: 3px;
+  z-index: 2;
+}
+
+.live-card-body {
+  padding: 8px 10px 10px;
+}
+.live-card-title {
+  font-size: 12.5px; font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 35px;
+  margin-bottom: 6px;
+}
+.live-card-lecturer {
+  display: flex; align-items: center; gap: 5px;
+  margin-bottom: 8px;
+}
+.live-card-lecturer .mini-avatar {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary-mid), var(--color-primary-light));
+  color: #fff;
+  font-size: 9px;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.live-card-lecturer .name {
+  font-size: 10.5px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.live-card-lecturer .lic {
+  background: rgba(201, 165, 92, 0.12);
+  color: var(--color-gold-deep);
+  font-size: 8.5px;
+  padding: 0 3px;
+  border-radius: 2px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.live-card-bottom {
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+.live-card-bottom .reserve-btn {
+  flex: 1;
+  height: 24px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 10.5px;
+  border-radius: var(--radius-pill);
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  display: flex; align-items: center; justify-content: center;
+  gap: 3px;
+}
+.live-card-bottom .reserve-btn::before {
+  content: '+';
+  font-size: 13px;
+  line-height: 1;
+}
+.live-card-bottom .reserve-btn.done {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-divider);
+}
+.live-card-bottom .reserve-btn.done::before { content: '✓'; font-size: 10px; }
+.live-card-bottom .live-time {
+  flex: 1;
+  font-size: 10.5px;
+  color: var(--color-live);
+  font-weight: 500;
+  display: flex; align-items: center; gap: 3px;
+}
+.live-card-bottom .live-time::before {
+  content: '';
+  width: 5px; height: 5px;
+  background: var(--color-live);
+  border-radius: 50%;
+  animation: pulse 1.4s infinite;
+}
+.live-card-bottom .ended-time {
+  flex: 1;
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  display: flex; align-items: center; gap: 3px;
+}
+.live-card-bottom .ended-time::before {
+  content: '○';
+  font-size: 10px;
+}
+.live-card-bottom .replay-link {
+  font-size: 10.5px;
+  color: var(--color-primary-light);
+  font-weight: 500;
+  display: flex; align-items: center;
+}
+.live-card-bottom .replay-link::after {
+  content: '›';
+  font-size: 14px;
+  line-height: 1;
+  margin-left: 1px;
+}
+
+/* ============== 讲师矩阵 ============== */
+.lecturer-matrix-wrap {
+  margin: 6px 16px 0;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 14px 0 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-divider);
+  position: relative;
+  overflow: hidden;
+}
+.lecturer-matrix-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 14px; right: 14px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-gold) 0%, var(--color-gold-light) 50%, transparent 100%);
+}
+.matrix-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 14px;
+  margin-bottom: 2px;
+}
+.matrix-title {
+  font-family: var(--font-serif);
+  font-size: 16px; font-weight: 600;
+  color: var(--color-text-primary);
+  display: flex; align-items: baseline; gap: 6px;
+}
+.matrix-title .en {
+  font-family: var(--font-display);
+  font-size: 10px;
+  color: var(--color-gold);
+  letter-spacing: 2px;
+  font-weight: 400;
+}
+.matrix-subtitle {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 0 14px;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+.matrix-subtitle .num {
+  color: var(--color-gold-deep);
+  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 13px;
+}
+
+/* —— 下划线 tab —— */
+.matrix-tabs {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding: 0 14px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.matrix-tabs::-webkit-scrollbar { height: 0; }
+.matrix-tab {
+  flex-shrink: 0;
+  position: relative;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  padding: 6px 0 10px;
+  cursor: pointer;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+.matrix-tab.active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.matrix-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 50%; bottom: 0;
+  transform: translateX(-50%);
+  width: 22px; height: 2.5px;
+  background: linear-gradient(90deg, var(--color-gold) 0%, var(--color-gold-deep) 100%);
+  border-radius: 2px;
+}
+
+/* —— 讲师卡片：小图 + 介绍 + 按钮 —— */
+.matrix-scroll {
+  display: flex; gap: 10px;
+  overflow-x: auto;
+  padding: 4px 14px 6px;
+}
+.matrix-scroll::-webkit-scrollbar { height: 0; }
+.lecturer-card {
+  flex-shrink: 0;
+  width: 134px;
+  background: linear-gradient(180deg, #FAFBFD 0%, #fff 60%);
+  border-radius: var(--radius-md);
+  padding: 12px 10px 10px;
+  border: 1px solid var(--color-divider);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+.lecturer-card:active {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.lecturer-card.featured {
+  background: linear-gradient(180deg, #FFF9EB 0%, #fff 60%);
+  border-color: rgba(201, 165, 92, 0.3);
+}
+.lecturer-card.featured::before {
+  content: '推荐';
+  position: absolute;
+  top: -1px; right: 8px;
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-deep) 100%);
+  color: #fff;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 0 0 4px 4px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.lecturer-card .card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.lecturer-card .avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary-mid), var(--color-primary-light));
+  color: #fff;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+.lecturer-card .avatar.cert::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 12px; height: 12px;
+  background: var(--color-gold) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M9 4L5 8L3 6' stroke='white' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / 80% no-repeat;
+  border-radius: 50%;
+  border: 1.5px solid #fff;
+}
+.lecturer-card .head-info {
+  flex: 1;
+  min-width: 0;
+}
+.lecturer-card .name {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lecturer-card .role {
+  font-size: 9.5px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lecturer-card .intro {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 33px;
+  margin-bottom: 8px;
+  letter-spacing: 0.1px;
+}
+.lecturer-card .stats {
+  font-size: 9.5px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  display: flex;
+  gap: 8px;
+}
+.lecturer-card .stats span .num {
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+}
+.lecturer-card .enter-btn {
+  width: 100%;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  padding: 6px 0;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  margin-top: auto;
+}
+.lecturer-card.featured .enter-btn {
+  background: linear-gradient(135deg, var(--color-gold-deep) 0%, var(--color-gold) 100%);
+}
+
+/* ============== 热门课程 ============== */
+.course-scroll {
+  display: flex; gap: 10px;
+  overflow-x: auto;
+  padding: 0 16px 4px;
+  scroll-snap-type: x mandatory;
+}
+.course-scroll::-webkit-scrollbar { height: 0; }
+.course-card {
+  flex-shrink: 0;
+  width: 160px;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  scroll-snap-align: start;
+  cursor: pointer;
+  position: relative;
+}
+.course-card-cover {
+  height: 100px;
+  position: relative;
+  overflow: hidden;
+}
+.course-card-cover.c1 {
+  background:
+    radial-gradient(ellipse at top right, rgba(201, 165, 92, 0.45) 0%, transparent 60%),
+    linear-gradient(135deg, #1A3D7C 0%, #061833 100%);
+}
+.course-card-cover.c2 {
+  background:
+    radial-gradient(ellipse at bottom left, rgba(31, 138, 112, 0.4) 0%, transparent 60%),
+    linear-gradient(135deg, #13315C 0%, #0B2545 100%);
+}
+.course-card-cover.c3 {
+  background:
+    radial-gradient(ellipse at center, rgba(230, 57, 70, 0.25) 0%, transparent 60%),
+    linear-gradient(135deg, #1E4D8B 0%, #13315C 100%);
+}
+.course-card-cover.c4 {
+  background:
+    radial-gradient(ellipse at top left, rgba(201, 165, 92, 0.35) 0%, transparent 55%),
+    linear-gradient(135deg, #061833 0%, #1A3D7C 100%);
+}
+.course-card-cover svg.deco {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0.4;
+}
+.course-card-type {
+  position: absolute;
+  top: 8px; left: 8px;
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  font-size: 9.5px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(8px);
+}
+.course-card-type.gold {
+  background: rgba(201, 165, 92, 0.85);
+}
+.course-card-overlay-title {
+  position: absolute;
+  left: 10px; right: 10px; bottom: 8px;
+  color: #fff;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.course-card-body {
+  padding: 10px 12px 11px;
+}
+.course-card-lecturer {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 8px;
+}
+.course-card-lecturer .mini-avatar {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary-mid), var(--color-primary-light));
+  color: #fff;
+  font-size: 10px;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.course-card-lecturer .mini-name {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+.course-card-lecturer .mini-lic {
+  background: rgba(201, 165, 92, 0.12);
+  color: var(--color-gold-deep);
+  font-size: 9px;
+  padding: 0 4px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+.course-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+}
+.course-card-meta .lessons { display: flex; align-items: center; gap: 3px; }
+.course-card-meta .learners {
+  color: var(--color-primary-light);
+  font-weight: 500;
+}
+.course-card-meta .learners .num {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+/* ============== 直播预告：左封面 16:9 + 右内容 ============== */
+.live-schedule-wrap {
+  margin: 0 16px;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 4px 0 4px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.schedule-day-header {
+  padding: 12px 14px 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px dashed var(--color-divider);
+  margin-bottom: 2px;
+}
+.schedule-day-header.today .day-tag {
+  background: var(--color-live);
+  color: #fff;
+}
+.schedule-day-header .day-tag {
+  background: var(--color-bg-blue);
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+.schedule-day-header .day-date {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+.schedule-day-header .day-weekday {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+
+.schedule-item {
+  display: flex;
+  padding: 12px 14px;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  border-bottom: 1px solid var(--color-divider);
+  align-items: stretch;
+}
+.schedule-item:last-child { border-bottom: none; }
+.schedule-item:active { background: var(--color-bg-blue); }
+
+/* 16:9 封面 */
+.schedule-cover {
+  flex-shrink: 0;
+  width: 115px;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-sm);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--color-primary-mid) 0%, var(--color-primary-deep) 100%);
+}
+.schedule-cover.theme-1 {
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(201, 165, 92, 0.4) 0%, transparent 50%),
+    linear-gradient(135deg, #13315C 0%, #061833 100%);
+}
+.schedule-cover.theme-2 {
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(230, 57, 70, 0.3) 0%, transparent 50%),
+    linear-gradient(135deg, #1E4D8B 0%, #0B2545 100%);
+}
+.schedule-cover.theme-3 {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(31, 138, 112, 0.3) 0%, transparent 60%),
+    linear-gradient(135deg, #13315C 0%, #1E4D8B 100%);
+}
+.schedule-cover.theme-4 {
+  background:
+    radial-gradient(ellipse at top left, rgba(201, 165, 92, 0.35) 0%, transparent 55%),
+    linear-gradient(135deg, #061833 0%, #1A3D7C 100%);
+}
+.schedule-cover.theme-5 {
+  background:
+    radial-gradient(ellipse at center, rgba(154, 124, 62, 0.3) 0%, transparent 60%),
+    linear-gradient(135deg, #1A3D7C 0%, #13315C 100%);
+}
+.schedule-cover svg.deco {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0.35;
+}
+.schedule-cover .cover-flag {
+  position: absolute;
+  top: 4px; left: 4px;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  display: flex; align-items: center; gap: 3px;
+}
+.schedule-cover .cover-flag.live {
+  background: var(--color-live);
+  color: #fff;
+}
+.schedule-cover .cover-flag.live .dot {
+  width: 4px; height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  animation: pulse 1.4s infinite;
+}
+.schedule-cover .cover-flag.time {
+  background: rgba(0,0,0,0.55);
+  color: var(--color-gold-light);
+  font-weight: 500;
+}
+.schedule-cover .play-icon {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+}
+.schedule-cover .play-icon::after {
+  content: '';
+  width: 0; height: 0;
+  border-left: 7px solid #fff;
+  border-top: 4.5px solid transparent;
+  border-bottom: 4.5px solid transparent;
+  margin-left: 2px;
+}
+
+/* 右侧内容区 */
+.schedule-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1px 0;
+}
+.schedule-content .title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.schedule-content .lecturer-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+.schedule-content .lecturer-row .mini-avatar {
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary-mid), var(--color-primary-light));
+  color: #fff;
+  font-size: 8px;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.schedule-content .lecturer-row .lic {
+  background: rgba(201, 165, 92, 0.12);
+  color: var(--color-gold-deep);
+  font-size: 9px;
+  padding: 0 4px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+.schedule-content .footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.schedule-content .viewers {
+  color: var(--color-text-muted);
+  display: flex; align-items: center; gap: 3px;
+}
+.schedule-content .viewers .num {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-family: var(--font-display);
+}
+.schedule-content .viewers.live-viewers {
+  color: var(--color-live);
+}
+.schedule-content .viewers.live-viewers::before {
+  content: '●';
+  font-size: 8px;
+  margin-right: 2px;
+  animation: pulse 1.4s infinite;
+}
+.schedule-content .viewers.live-viewers .num {
+  color: var(--color-live);
+}
+
+.schedule-content .btn {
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+.schedule-content .btn.reserve {
+  background: var(--color-primary);
+  color: #fff;
+}
+.schedule-content .btn.enter {
+  background: var(--color-live);
+  color: #fff;
+}
+.schedule-content .btn.reserved {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-divider);
+}
+
+/* ============== 风险提示 + 底部 ============== */
+.risk-tip {
+  margin: 18px 16px 0;
+  padding: 9px 12px;
+  background: #F7F4EC;
+  border-left: 2px solid var(--color-gold);
+  font-size: 10.5px;
+  color: var(--color-gold-deep);
+  line-height: 1.5;
+  border-radius: 4px;
+}
+.feed-end {
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 11px;
+  padding: 16px 0 10px;
+  letter-spacing: 1px;
+}
+.feed-end::before, .feed-end::after {
+  content: '——';
+  margin: 0 8px;
+  opacity: 0.5;
+}
+
+/* ============== 浮动客服 ============== */
+.float-cs {
+  position: absolute;
+  right: 12px;
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 12px);
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-deep) 100%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-gold);
+  color: #fff;
+  z-index: 40;
+  cursor: pointer;
+}
+.float-cs svg { width: 20px; height: 20px; }
+
+/* ============== TabBar ============== */
+.tabbar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: calc(var(--tabbar-h) + var(--safe-bottom));
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--color-divider);
+  display: flex;
+  padding-bottom: var(--safe-bottom);
+  z-index: 50;
+}
+.tabbar-item {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 500;
+}
+.tabbar-item svg { width: 22px; height: 22px; }
+.tabbar-item.active { color: var(--color-primary); }
+.tabbar-item.active svg { color: var(--color-primary); }
+</style>
+</head>
+<body>
+
+<button class="mode-toggle" onclick="toggleMode()">📱 切换演示模式</button>
+
+<div class="device">
+
+  <div class="home-header-bg"></div>
+
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span class="right">
+      <svg viewBox="0 0 16 12" fill="currentColor"><path d="M1 8h2v4H1zM5 5h2v7H5zM9 2h2v10H9zM13 0h2v12h-2z"/></svg>
+      <svg viewBox="0 0 16 12" fill="currentColor"><path d="M0 6 L3 3 L6 6 L3 9 Z M3 4 L5 2 L7 4 L5 6 Z M5 2 L6 1 L7 2 L6 3 Z" transform="translate(2 1)"/></svg>
+      <svg viewBox="0 0 24 12" fill="none" stroke="currentColor"><rect x="1" y="1" width="20" height="10" rx="2"/><rect x="3" y="3" width="14" height="6" fill="currentColor"/><rect x="22" y="4" width="1.5" height="4" fill="currentColor"/></svg>
+    </span>
+  </div>
+
+  <!-- 顶部栏：搜索 + 消息 -->
+  <div class="topbar">
+    <div class="topbar-search" onclick="alert('搜索：跳转搜索页')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+        <circle cx="7" cy="7" r="5"/>
+        <path d="M11 11l3.5 3.5" stroke-linecap="round"/>
+      </svg>
+      <span class="placeholder">搜索讲师、课程 · <span class="hot">🔥 美联储议息深度解读</span></span>
+    </div>
+    <div class="topbar-msg" onclick="alert('消息中心：待开发')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M13.7 21a2 2 0 01-3.4 0" stroke-linecap="round"/>
+      </svg>
+      <span class="num">3</span>
+    </div>
+  </div>
+
+  <!-- 滚动区 -->
+  <div class="scroll-area">
+
+    <!-- 活动 Banner -->
+    <div class="banner-area">
+      <div class="banner" onclick="alert('跳转：活动详情页')">
+        <span class="banner-tag">VIP 专场 · 限额 500</span>
+        <div class="banner-title">
+          年中策略会｜<span class="gold">三大首席</span><br>论道下半年资产配置
+        </div>
+        <div class="banner-meta">
+          <span class="left">5月25日 19:30 · 线上同步直播</span>
+          <span class="countdown">
+            <span>距开播</span>
+            <span class="countdown-box" id="cd-h">03</span>:
+            <span class="countdown-box" id="cd-m">42</span>:
+            <span class="countdown-box" id="cd-s">18</span>
+          </span>
+        </div>
+      </div>
+      <div class="banner-dots">
+        <span class="dot active"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+
+    <!-- 快捷功能（压缩） -->
+    <div class="quick-nav">
+      <div class="quick-item" onclick="alert('跳转：直播预约')">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg>
+          <span class="badge">12</span>
+        </div>
+        <span class="label">直播预约</span>
+      </div>
+      <div class="quick-item" onclick="alert('跳转：精品课程')">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5a2 2 0 012-2h9l5 5v11a2 2 0 01-2 2H5a2 2 0 01-2-2V5z"/><path d="M14 3v5h5M7 13h10M7 17h7"/></svg>
+        </div>
+        <span class="label">精品课程</span>
+      </div>
+      <div class="quick-item" onclick="alert('跳转：每日复盘')">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 18l5-6 4 4 8-10"/><path d="M14 6h6v6"/></svg>
+        </div>
+        <span class="label">每日复盘</span>
+      </div>
+      <div class="quick-item gold" onclick="alert('跳转：投顾问答')">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8 8 0 11-3-6.2L21 4v6h-6"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <span class="label">投顾问答</span>
+      </div>
+      <div class="quick-item" onclick="alert('跳转：训练营')">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+        </div>
+        <span class="label">投教训练营</span>
+      </div>
+      <div class="quick-item" onclick="alert('跳转：研报精选')">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+        </div>
+        <span class="label">研报精选</span>
+      </div>
+      <div class="quick-item" onclick="alert('跳转：投资社群')">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5M14 19c0-2 2-3.5 4.5-3.5S22 17 22 19"/></svg>
+        </div>
+        <span class="label">投资社群</span>
+      </div>
+      <div class="quick-item gold" onclick="alert('跳转：新人福利')">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M3 12h18M12 8v13"/><path d="M8 8c0-2 1.5-3 3-3s4 1 4 4-3.5 0-7 0c-3.5 0 0-3.5 0-4z"/></svg>
+        </div>
+        <span class="label">新人 0 元学</span>
+      </div>
+    </div>
+
+    <!-- 直播广场（2.5 卡 + 三种状态） -->
+    <div class="live-section-header">
+      <div class="live-section-title">
+        <span class="icon">●</span>
+        <span class="text">直播广场</span>
+        <span class="count">12 场进行中</span>
+      </div>
+      <span class="section-more" onclick="alert('全部直播：跳转直播列表页')">全部直播</span>
+    </div>
+
+    <div class="live-scroll">
+
+      <!-- 状态 1：直播中 -->
+      <div class="live-card" onclick="alert('进入直播间：陈泽明')">
+        <div class="live-card-cover theme-1">
+          <svg class="deco" viewBox="0 0 220 120" preserveAspectRatio="none">
+            <polyline points="0,90 30,75 50,82 75,55 100,68 130,40 160,52 195,28 220,38" stroke="#C9A55C" stroke-width="1.5" fill="none"/>
+            <polyline points="0,100 30,90 50,95 75,75 100,85 130,65 160,72 195,55 220,62" stroke="#fff" stroke-width="1" fill="none" opacity="0.4"/>
+          </svg>
+          <div class="live-flag live"><span class="dot"></span>LIVE</div>
+          <div class="viewers">👁 8,642</div>
+        </div>
+        <div class="live-card-body">
+          <div class="live-card-title">下半年市场展望：从政策面看A股结构性机会</div>
+          <div class="live-card-lecturer">
+            <div class="mini-avatar">陈</div>
+            <span class="name">陈泽明</span>
+            <span class="lic">投顾</span>
+          </div>
+          <div class="live-card-bottom">
+            <span class="live-time">直播中</span>
+            <span class="replay-link">进入</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 状态 2：未开始（预约按钮） -->
+      <div class="live-card" onclick="alert('直播详情：林思齐')">
+        <div class="live-card-cover theme-2">
+          <svg class="deco" viewBox="0 0 220 120" preserveAspectRatio="none">
+            <rect x="20" y="60" width="14" height="40" fill="#E63946" opacity="0.5"/>
+            <rect x="40" y="50" width="14" height="50" fill="#1F8A70" opacity="0.5"/>
+            <rect x="60" y="45" width="14" height="55" fill="#1F8A70" opacity="0.5"/>
+            <rect x="80" y="55" width="14" height="45" fill="#E63946" opacity="0.5"/>
+            <rect x="100" y="40" width="14" height="60" fill="#1F8A70" opacity="0.5"/>
+            <rect x="120" y="35" width="14" height="65" fill="#1F8A70" opacity="0.5"/>
+            <rect x="140" y="48" width="14" height="52" fill="#E63946" opacity="0.5"/>
+            <rect x="160" y="42" width="14" height="58" fill="#1F8A70" opacity="0.5"/>
+            <rect x="180" y="38" width="14" height="62" fill="#1F8A70" opacity="0.5"/>
+          </svg>
+          <div class="live-flag reserve">📅 19:30</div>
+        </div>
+        <div class="live-card-body">
+          <div class="live-card-title">如何挑选适合自己的指数基金 · 实操篇</div>
+          <div class="live-card-lecturer">
+            <div class="mini-avatar">林</div>
+            <span class="name">林思齐</span>
+            <span class="lic">基金</span>
+          </div>
+          <div class="live-card-bottom">
+            <button class="reserve-btn" onclick="reserveClick(event, this)">预约</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 状态 2b：已预约（变体） -->
+      <div class="live-card" onclick="alert('直播详情：David·吴')">
+        <div class="live-card-cover theme-3">
+          <svg class="deco" viewBox="0 0 220 120" preserveAspectRatio="none">
+            <circle cx="60" cy="60" r="35" stroke="#1F8A70" stroke-width="1" fill="none" opacity="0.6"/>
+            <circle cx="60" cy="60" r="25" stroke="#C9A55C" stroke-width="1" fill="none" opacity="0.6"/>
+            <circle cx="60" cy="60" r="15" stroke="#fff" stroke-width="1" fill="none" opacity="0.6"/>
+            <text x="140" y="55" fill="#C9A55C" font-size="18" font-weight="bold" opacity="0.6">资产</text>
+            <text x="140" y="78" fill="#fff" font-size="18" font-weight="bold" opacity="0.4">配置</text>
+          </svg>
+          <div class="live-flag reserve">📅 明日 14:00</div>
+        </div>
+        <div class="live-card-body">
+          <div class="live-card-title">家庭资产配置全景：从风险定位到工具选择</div>
+          <div class="live-card-lecturer">
+            <div class="mini-avatar">吴</div>
+            <span class="name">David·吴</span>
+            <span class="lic">CFP</span>
+          </div>
+          <div class="live-card-bottom">
+            <button class="reserve-btn done">已预约</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 状态 3：已结束 -->
+      <div class="live-card" onclick="alert('查看回放：苏明远')">
+        <div class="live-card-cover theme-4 ended">
+          <svg class="deco" viewBox="0 0 220 120" preserveAspectRatio="none">
+            <polyline points="0,80 40,60 80,70 120,40 160,50 200,30 220,38" stroke="#C9A55C" stroke-width="1" fill="none"/>
+            <text x="80" y="68" fill="#fff" font-size="14" opacity="0.5">FED</text>
+          </svg>
+          <div class="live-flag ended">● 已结束</div>
+        </div>
+        <div class="live-card-body">
+          <div class="live-card-title">美联储议息夜：实时解读与市场影响推演</div>
+          <div class="live-card-lecturer">
+            <div class="mini-avatar">苏</div>
+            <span class="name">苏明远</span>
+            <span class="lic">投顾</span>
+          </div>
+          <div class="live-card-bottom">
+            <span class="ended-time">05/20 21:00</span>
+            <span class="replay-link">回放</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 补一张未开播 -->
+      <div class="live-card" onclick="alert('直播详情：何婧雯')">
+        <div class="live-card-cover theme-3">
+          <svg class="deco" viewBox="0 0 220 120" preserveAspectRatio="none">
+            <path d="M20,80 Q60,30 110,60 T200,40" stroke="#fff" stroke-width="1" fill="none" opacity="0.5"/>
+            <circle cx="60" cy="55" r="2.5" fill="#C9A55C"/>
+            <circle cx="110" cy="60" r="2.5" fill="#C9A55C"/>
+            <circle cx="160" cy="48" r="2.5" fill="#C9A55C"/>
+          </svg>
+          <div class="live-flag reserve">📅 明日 20:00</div>
+        </div>
+        <div class="live-card-body">
+          <div class="live-card-title">量化择时入门：用数据辅助投资决策</div>
+          <div class="live-card-lecturer">
+            <div class="mini-avatar">何</div>
+            <span class="name">何婧雯</span>
+            <span class="lic">投顾</span>
+          </div>
+          <div class="live-card-bottom">
+            <button class="reserve-btn" onclick="reserveClick(event, this)">预约</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 讲师矩阵 -->
+    <div class="lecturer-matrix-wrap">
+      <div class="matrix-header">
+        <div class="matrix-title">
+          智策讲师团
+          <span class="en">LECTURERS</span>
+        </div>
+        <span class="section-more" onclick="alert('跳转：讲师列表页')">查看全部</span>
+      </div>
+      <div class="matrix-subtitle">
+        汇聚 <span class="num">128</span> 位持牌投顾与特聘专家 · 覆盖股票/基金/宏观/家庭理财
+      </div>
+
+      <!-- 下划线 tab -->
+      <div class="matrix-tabs">
+        <span class="matrix-tab active" onclick="switchTab(this)">全部</span>
+        <span class="matrix-tab" onclick="switchTab(this)">股票策略</span>
+        <span class="matrix-tab" onclick="switchTab(this)">基金研究</span>
+        <span class="matrix-tab" onclick="switchTab(this)">宏观研究</span>
+        <span class="matrix-tab" onclick="switchTab(this)">财富规划</span>
+        <span class="matrix-tab" onclick="switchTab(this)">量化投资</span>
+      </div>
+
+      <div class="matrix-scroll">
+
+        <div class="lecturer-card featured" onclick="alert('进入主页：陈泽明')">
+          <div class="card-head">
+            <div class="avatar cert">陈</div>
+            <div class="head-info">
+              <div class="name">陈泽明</div>
+              <div class="role">首席策略 · 投顾</div>
+            </div>
+          </div>
+          <div class="intro">深耕 A 股 12 年，擅长价值投资与行业轮动，主讲《价值投资入门到实战》</div>
+          <div class="stats">
+            <span><span class="num">12</span> 课</span>
+            <span><span class="num">38</span> 场直播</span>
+          </div>
+          <button class="enter-btn">进入主页</button>
+        </div>
+
+        <div class="lecturer-card" onclick="alert('进入主页：林思齐')">
+          <div class="card-head">
+            <div class="avatar cert">林</div>
+            <div class="head-info">
+              <div class="name">林思齐</div>
+              <div class="role">基金研究员</div>
+            </div>
+          </div>
+          <div class="intro">FOF 配置与指数基金研究，专注帮助投资者建立长期定投策略</div>
+          <div class="stats">
+            <span><span class="num">8</span> 课</span>
+            <span><span class="num">24</span> 场直播</span>
+          </div>
+          <button class="enter-btn">进入主页</button>
+        </div>
+
+        <div class="lecturer-card" onclick="alert('进入主页：David·吴')">
+          <div class="card-head">
+            <div class="avatar">吴</div>
+            <div class="head-info">
+              <div class="name">David·吴</div>
+              <div class="role">CFP · 财富规划</div>
+            </div>
+          </div>
+          <div class="intro">服务高净值家庭十余年，擅长全景式资产配置与保险规划</div>
+          <div class="stats">
+            <span><span class="num">15</span> 课</span>
+            <span><span class="num">19</span> 场直播</span>
+          </div>
+          <button class="enter-btn">进入主页</button>
+        </div>
+
+        <div class="lecturer-card" onclick="alert('进入主页：苏明远')">
+          <div class="card-head">
+            <div class="avatar cert">苏</div>
+            <div class="head-info">
+              <div class="name">苏明远</div>
+              <div class="role">宏观分析师 · 投顾</div>
+            </div>
+          </div>
+          <div class="intro">长期跟踪美联储政策、汇率与大宗商品，宏观逻辑清晰</div>
+          <div class="stats">
+            <span><span class="num">6</span> 课</span>
+            <span><span class="num">42</span> 场直播</span>
+          </div>
+          <button class="enter-btn">进入主页</button>
+        </div>
+
+        <div class="lecturer-card" onclick="alert('进入主页：何婧雯')">
+          <div class="card-head">
+            <div class="avatar">何</div>
+            <div class="head-info">
+              <div class="name">何婧雯</div>
+              <div class="role">量化策略</div>
+            </div>
+          </div>
+          <div class="intro">十年量化研究经验，专注用数据辅助择时与风险控制</div>
+          <div class="stats">
+            <span><span class="num">5</span> 课</span>
+            <span><span class="num">11</span> 场直播</span>
+          </div>
+          <button class="enter-btn">进入主页</button>
+        </div>
+
+        <div class="lecturer-card" onclick="alert('进入主页：郑宇航')">
+          <div class="card-head">
+            <div class="avatar cert">郑</div>
+            <div class="head-info">
+              <div class="name">郑宇航</div>
+              <div class="role">行业研究 · 投顾</div>
+            </div>
+          </div>
+          <div class="intro">聚焦 TMT 与新能源行业，主讲产业链投资逻辑</div>
+          <div class="stats">
+            <span><span class="num">9</span> 课</span>
+            <span><span class="num">28</span> 场直播</span>
+          </div>
+          <button class="enter-btn">进入主页</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 热门课程 -->
+    <div class="section-header">
+      <div class="section-title">
+        <span class="accent"></span>
+        热门课程
+        <span class="en">COURSES</span>
+      </div>
+      <span class="section-more" onclick="alert('跳转：课程列表页')">查看全部</span>
+    </div>
+    <div class="course-scroll">
+
+      <div class="course-card" onclick="alert('跳转：课程详情')">
+        <div class="course-card-cover c1">
+          <svg class="deco" viewBox="0 0 160 100" preserveAspectRatio="none">
+            <polyline points="0,75 25,60 50,68 75,40 100,52 130,28 160,35" stroke="#C9A55C" stroke-width="1.5" fill="none"/>
+            <polyline points="0,85 25,80 50,82 75,68 100,75 130,58 160,62" stroke="#fff" stroke-width="1" fill="none" opacity="0.4"/>
+          </svg>
+          <div class="course-card-type gold">系列课 · 12 节</div>
+          <div class="course-card-overlay-title">价值投资<br/>入门到实战</div>
+        </div>
+        <div class="course-card-body">
+          <div class="course-card-lecturer">
+            <div class="mini-avatar">陈</div>
+            <span class="mini-name">陈泽明</span>
+            <span class="mini-lic">投顾</span>
+          </div>
+          <div class="course-card-meta">
+            <span class="lessons">📚 12 节</span>
+            <span class="learners"><span class="num">2.4w</span> 人学</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card" onclick="alert('跳转：课程详情')">
+        <div class="course-card-cover c2">
+          <svg class="deco" viewBox="0 0 160 100" preserveAspectRatio="none">
+            <circle cx="40" cy="50" r="22" stroke="#1F8A70" stroke-width="1" fill="none"/>
+            <circle cx="40" cy="50" r="14" stroke="#C9A55C" stroke-width="1" fill="none"/>
+            <circle cx="40" cy="50" r="6" fill="#C9A55C"/>
+            <rect x="80" y="35" width="6" height="30" fill="#1F8A70"/>
+            <rect x="92" y="25" width="6" height="40" fill="#1F8A70"/>
+            <rect x="104" y="40" width="6" height="25" fill="#1F8A70"/>
+            <rect x="116" y="20" width="6" height="45" fill="#1F8A70"/>
+            <rect x="128" y="30" width="6" height="35" fill="#1F8A70"/>
+            <rect x="140" y="15" width="6" height="50" fill="#1F8A70"/>
+          </svg>
+          <div class="course-card-type">训练营 · 21 天</div>
+          <div class="course-card-overlay-title">基金定投<br/>21 天训练营</div>
+        </div>
+        <div class="course-card-body">
+          <div class="course-card-lecturer">
+            <div class="mini-avatar">林</div>
+            <span class="mini-name">林思齐</span>
+            <span class="mini-lic">基金</span>
+          </div>
+          <div class="course-card-meta">
+            <span class="lessons">📚 21 节</span>
+            <span class="learners"><span class="num">1.6w</span> 人学</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card" onclick="alert('跳转：课程详情')">
+        <div class="course-card-cover c3">
+          <svg class="deco" viewBox="0 0 160 100" preserveAspectRatio="none">
+            <path d="M20,80 Q40,40 60,60 T100,30 T140,50" stroke="#fff" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <circle cx="60" cy="60" r="3" fill="#C9A55C"/>
+            <circle cx="100" cy="30" r="3" fill="#C9A55C"/>
+            <circle cx="140" cy="50" r="3" fill="#C9A55C"/>
+          </svg>
+          <div class="course-card-type">系列课 · 8 节</div>
+          <div class="course-card-overlay-title">家庭财富<br/>规划全景课</div>
+        </div>
+        <div class="course-card-body">
+          <div class="course-card-lecturer">
+            <div class="mini-avatar">吴</div>
+            <span class="mini-name">David·吴</span>
+            <span class="mini-lic">CFP</span>
+          </div>
+          <div class="course-card-meta">
+            <span class="lessons">📚 8 节</span>
+            <span class="learners"><span class="num">9,832</span> 人学</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card" onclick="alert('跳转：课程详情')">
+        <div class="course-card-cover c4">
+          <svg class="deco" viewBox="0 0 160 100" preserveAspectRatio="none">
+            <text x="20" y="55" fill="#C9A55C" font-size="22" font-weight="bold" opacity="0.6">宏观</text>
+            <line x1="20" y1="65" x2="140" y2="65" stroke="#fff" stroke-width="0.5" opacity="0.4"/>
+            <line x1="20" y1="75" x2="100" y2="75" stroke="#fff" stroke-width="0.5" opacity="0.3"/>
+            <line x1="20" y1="85" x2="120" y2="85" stroke="#fff" stroke-width="0.5" opacity="0.3"/>
+          </svg>
+          <div class="course-card-type">单节课</div>
+          <div class="course-card-overlay-title">读懂美联储<br/>看懂大类资产</div>
+        </div>
+        <div class="course-card-body">
+          <div class="course-card-lecturer">
+            <div class="mini-avatar">苏</div>
+            <span class="mini-name">苏明远</span>
+            <span class="mini-lic">投顾</span>
+          </div>
+          <div class="course-card-meta">
+            <span class="lessons">📚 1 节 · 45 分钟</span>
+            <span class="learners"><span class="num">6,218</span> 人学</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 直播预告（左 16:9 + 右内容） -->
+    <div class="section-header">
+      <div class="section-title">
+        <span class="accent"></span>
+        直播预告
+        <span class="en">SCHEDULE</span>
+      </div>
+      <span class="section-more" onclick="alert('跳转：直播日历')">完整日历</span>
+    </div>
+
+    <div class="live-schedule-wrap">
+
+      <!-- 今日 -->
+      <div class="schedule-day-header today">
+        <span class="day-tag">今日</span>
+        <span class="day-date">05 / 21</span>
+        <span class="day-weekday">星期三</span>
+      </div>
+
+      <div class="schedule-item" onclick="alert('进入直播间')">
+        <div class="schedule-cover theme-1">
+          <svg class="deco" viewBox="0 0 160 90" preserveAspectRatio="none">
+            <polyline points="0,68 25,55 50,62 80,40 110,52 140,28 160,35" stroke="#C9A55C" stroke-width="1.2" fill="none"/>
+          </svg>
+          <div class="cover-flag live"><span class="dot"></span>LIVE</div>
+          <div class="play-icon"></div>
+        </div>
+        <div class="schedule-content">
+          <div class="title">下半年市场展望：从政策面看A股结构性机会</div>
+          <div class="lecturer-row">
+            <div class="mini-avatar">陈</div>
+            <span>陈泽明</span>
+            <span class="lic">证券投顾</span>
+          </div>
+          <div class="footer-row">
+            <span class="viewers live-viewers"><span class="num">8,642</span> 在看</span>
+            <button class="btn enter">进入</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-item" onclick="alert('查看详情')">
+        <div class="schedule-cover theme-2">
+          <svg class="deco" viewBox="0 0 160 90" preserveAspectRatio="none">
+            <rect x="15" y="48" width="11" height="32" fill="#1F8A70" opacity="0.5"/>
+            <rect x="30" y="40" width="11" height="40" fill="#1F8A70" opacity="0.5"/>
+            <rect x="45" y="50" width="11" height="30" fill="#E63946" opacity="0.5"/>
+            <rect x="60" y="35" width="11" height="45" fill="#1F8A70" opacity="0.5"/>
+            <rect x="75" y="42" width="11" height="38" fill="#1F8A70" opacity="0.5"/>
+            <rect x="90" y="32" width="11" height="48" fill="#1F8A70" opacity="0.5"/>
+            <rect x="105" y="38" width="11" height="42" fill="#E63946" opacity="0.5"/>
+            <rect x="120" y="30" width="11" height="50" fill="#1F8A70" opacity="0.5"/>
+            <rect x="135" y="36" width="11" height="44" fill="#1F8A70" opacity="0.5"/>
+          </svg>
+          <div class="cover-flag time">📅 19:30</div>
+        </div>
+        <div class="schedule-content">
+          <div class="title">如何挑选适合自己的指数基金 · 实操篇</div>
+          <div class="lecturer-row">
+            <div class="mini-avatar">林</div>
+            <span>林思齐</span>
+            <span class="lic">基金从业</span>
+          </div>
+          <div class="footer-row">
+            <span class="viewers"><span class="num">2,348</span> 已预约</span>
+            <button class="btn reserve" onclick="reserveClick(event, this)">预约</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-item" onclick="alert('查看详情')">
+        <div class="schedule-cover theme-4">
+          <svg class="deco" viewBox="0 0 160 90" preserveAspectRatio="none">
+            <text x="55" y="55" fill="#C9A55C" font-size="22" font-weight="bold" opacity="0.5">FED</text>
+            <line x1="20" y1="68" x2="140" y2="68" stroke="#fff" stroke-width="0.5" opacity="0.3"/>
+          </svg>
+          <div class="cover-flag time">📅 21:00</div>
+        </div>
+        <div class="schedule-content">
+          <div class="title">美联储议息夜：实时解读与市场影响推演</div>
+          <div class="lecturer-row">
+            <div class="mini-avatar">苏</div>
+            <span>苏明远</span>
+            <span class="lic">证券投顾</span>
+          </div>
+          <div class="footer-row">
+            <span class="viewers"><span class="num">5,612</span> 已预约</span>
+            <button class="btn reserved">已预约</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 明日 -->
+      <div class="schedule-day-header">
+        <span class="day-tag">明日</span>
+        <span class="day-date">05 / 22</span>
+        <span class="day-weekday">星期四</span>
+      </div>
+
+      <div class="schedule-item" onclick="alert('查看详情')">
+        <div class="schedule-cover theme-3">
+          <svg class="deco" viewBox="0 0 160 90" preserveAspectRatio="none">
+            <circle cx="40" cy="45" r="22" stroke="#1F8A70" stroke-width="1" fill="none" opacity="0.6"/>
+            <circle cx="40" cy="45" r="14" stroke="#C9A55C" stroke-width="1" fill="none" opacity="0.6"/>
+            <circle cx="40" cy="45" r="6" fill="#C9A55C" opacity="0.6"/>
+            <text x="85" y="42" fill="#fff" font-size="11" opacity="0.5">资产</text>
+            <text x="85" y="58" fill="#C9A55C" font-size="11" opacity="0.6">配置</text>
+          </svg>
+          <div class="cover-flag time">📅 14:00</div>
+        </div>
+        <div class="schedule-content">
+          <div class="title">家庭资产配置全景：从风险定位到工具选择</div>
+          <div class="lecturer-row">
+            <div class="mini-avatar">吴</div>
+            <span>David·吴</span>
+            <span class="lic">CFP 持证</span>
+          </div>
+          <div class="footer-row">
+            <span class="viewers"><span class="num">1,026</span> 已预约</span>
+            <button class="btn reserve" onclick="reserveClick(event, this)">预约</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-item" onclick="alert('查看详情')">
+        <div class="schedule-cover theme-5">
+          <svg class="deco" viewBox="0 0 160 90" preserveAspectRatio="none">
+            <path d="M10,65 Q40,30 75,50 T150,38" stroke="#fff" stroke-width="1" fill="none" opacity="0.5"/>
+            <circle cx="40" cy="48" r="2.5" fill="#C9A55C"/>
+            <circle cx="75" cy="50" r="2.5" fill="#C9A55C"/>
+            <circle cx="115" cy="42" r="2.5" fill="#C9A55C"/>
+          </svg>
+          <div class="cover-flag time">📅 20:00</div>
+        </div>
+        <div class="schedule-content">
+          <div class="title">量化择时入门：用数据辅助投资决策</div>
+          <div class="lecturer-row">
+            <div class="mini-avatar">何</div>
+            <span>何婧雯</span>
+            <span class="lic">证券投顾</span>
+          </div>
+          <div class="footer-row">
+            <span class="viewers"><span class="num">784</span> 已预约</span>
+            <button class="btn reserve" onclick="reserveClick(event, this)">预约</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 风险提示 -->
+    <div class="risk-tip">
+      ⚠️ 平台所有课程与直播内容仅为讲师个人观点，不构成投资建议。市场有风险，投资需谨慎。请根据自身风险承受能力审慎决策。
+    </div>
+
+    <div class="feed-end">已加载全部</div>
+
+  </div>
+
+  <!-- 浮动客服 -->
+  <div class="float-cs" onclick="alert('在线投顾咨询')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8z"/></svg>
+  </div>
+
+  <!-- TabBar -->
+  <div class="tabbar">
+    <div class="tabbar-item active">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-2v9h-5v-6h-4v6H5v-9H3z"/></svg>
+      <span>首页</span>
+    </div>
+    <div class="tabbar-item" onclick="alert('讲师页：待开发')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+      <span>讲师</span>
+    </div>
+    <div class="tabbar-item" onclick="alert('直播页：待开发')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M10 11l5 2.5L10 16z" fill="currentColor"/></svg>
+      <span>直播</span>
+    </div>
+    <div class="tabbar-item" onclick="alert('学习页：待开发')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4h18v4H3zM3 11h18v4H3zM3 18h12v3H3z"/></svg>
+      <span>学习</span>
+    </div>
+    <div class="tabbar-item" onclick="alert('我的页：待开发')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+      <span>我的</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // 倒计时
+  let total = 3 * 3600 + 42 * 60 + 18;
+  setInterval(() => {
+    if (total <= 0) return;
+    total--;
+    const h = String(Math.floor(total / 3600)).padStart(2, '0');
+    const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+    const s = String(total % 60).padStart(2, '0');
+    document.getElementById('cd-h').textContent = h;
+    document.getElementById('cd-m').textContent = m;
+    document.getElementById('cd-s').textContent = s;
+  }, 1000);
+
+  function switchTab(el) {
+    document.querySelectorAll('.matrix-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function reserveClick(e, btn) {
+    e.stopPropagation();
+    if (btn.classList.contains('reserve-btn') && !btn.classList.contains('done')) {
+      btn.classList.add('done');
+      btn.textContent = '已预约';
+    } else if (btn.classList.contains('btn') && btn.classList.contains('reserve')) {
+      btn.classList.remove('reserve');
+      btn.classList.add('reserved');
+      btn.textContent = '已预约';
+    }
+  }
+
+  function toggleMode() {
+    document.body.classList.toggle('demo-mode');
+    localStorage.setItem('demoMode', document.body.classList.contains('demo-mode') ? '1' : '0');
+  }
+  if (location.search.includes('demo=1') || localStorage.getItem('demoMode') === '1') {
+    document.body.classList.add('demo-mode');
+  }
+</script>
+
+</body>
+</html>
